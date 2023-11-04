@@ -1,0 +1,75 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "func",
+      "command": "host start",
+      "problemMatcher": "$func-python-watch",
+      "isBackground": true,
+      "dependsOn": ["pip install (functions)", "azurite"],
+      "presentation": {
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "azurite",
+      "type": "shell",
+      "command": "azurite --location ./.azurite",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "azurite",
+        "pattern": [
+          {
+            "regexp": "Azurite Blob service is successfully listening at http://[0-9.]+:10000",
+            "file": 1,
+            "line": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Azurite Blob service is starting",
+          "endsPattern": "Azurite Blob service is successfully listening"
+        }
+      },
+      "presentation": {
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "pip install (functions)",
+      "type": "shell",
+      "osx": {
+        "command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements/prod.txt"
+      },
+      "windows": {
+        "command": "${config:azureFunctions.pythonVenv}\\Scripts\\python -m pip install -r requirements/prod.txt"
+      },
+      "linux": {
+        "command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements/prod.txt"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pytest html coverage report",
+      "type": "shell",
+      "command": "& .\\.venv\\Scripts//Activate.ps1 && pytest --cov=. --cov-report=html:coverage -vv; swa start .//coverage/",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    }
+  ]
+}
