@@ -29,8 +29,7 @@ async def test_valid_data(mock, get_user):
         url="http://localhost:7071/api/orchestrator/start",
         method="POST",
         params={
-            "functionName": "stocktracker_orchestrator",
-            "daysToUpdate": "all",
+            "functionName": "orchestrator_gather_data",
         },
     )
 
@@ -57,39 +56,12 @@ async def test_invalid_function_name(mock):
         url="http://localhost:7071/api/orchestrator/start",
         method="POST",
         params={
-            "functionName": "stocktracker_orchestrator1",
-            "daysToUpdate": "all",
+            "functionName": "orchestrator_gather_data1",
         },
     )
 
     expected_response = func.HttpResponse(
         '{"status": "Please pass a valid function name in the route parameters"}',
-        status_code=400,
-    )
-
-    response = await main(req, starter)
-    assert response.status_code == expected_response.status_code
-    assert response.get_body() == expected_response.get_body()
-
-
-@pytest.mark.asyncio()
-@patch(
-    "azure.durable_functions.DurableOrchestrationClient",
-    spec=df.DurableOrchestrationClient,
-)
-async def test_invalid_days_to_update(mock):
-    """Check invalid days to update"""
-    req = create_params_func_request(
-        url="http://localhost:7071/api/orchestrator/start",
-        method="POST",
-        params={
-            "functionName": "stocktracker_orchestrator",
-            "daysToUpdate": "all1",
-        },
-    )
-
-    expected_response = func.HttpResponse(
-        '{"status": "Please pass a valid number of days to update or pass all in the route parameters"}',
         status_code=400,
     )
 
