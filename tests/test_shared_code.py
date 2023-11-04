@@ -1,13 +1,20 @@
 """Test get_config.py"""
 
 import asyncio
+import base64
+import json
 import os
+from pathlib import Path
 from unittest import mock
 
+import azure.functions as func
 import pytest
 from azure.cosmos import exceptions
 
 from shared_code import aio_helper, cosmosdb_module, get_config, utils
+
+with open(Path(__file__).parent / "data" / "get_user_data.json", "r") as f:
+    mock_get_user_data = json.load(f)
 
 
 @pytest.mark.asyncio()
@@ -124,6 +131,7 @@ class TestGetConfig:
         assert cosmosdb["key"] == "test_key"
         assert cosmosdb["database"] == "test_database"
 
+
 class TestUtils:
     """Test utils"""
 
@@ -151,3 +159,22 @@ class TestUtils:
         weight = [1, 2]
         weighted_average = utils.get_weighted_average(data, weight)
         assert weighted_average == 3.0
+
+    def test_get_user(self):
+        """Test get user"""
+        x_ms_client_principal = base64.b64encode(
+            json.dumps(mock_get_user_data).encode("ascii")
+        )
+
+        req = func.HttpRequest(
+            method="GET",
+            url="/api/user",
+            body=None,
+            headers={
+                "x-ms-client-principal": x_ms_client_principal,
+            },
+        )
+
+        user = utils.get_user(req)
+
+        assert user == mock_get_user_data
