@@ -69,7 +69,7 @@ async def test_main(mock_client, get_user):
 
     json_1 = MagicMock()
     json_1.to_json.return_value = {
-        "name": "stocktracker_orchestrator",
+        "name": "orchestrator_gather_data",
         "instanceId": "a664b3d1c9c84475867853c3f14a584a",
         "createdTime": "2023-03-16T17:07:26.000000Z",
         "lastUpdatedTime": "2023-03-16T17:08:32.000000Z",
@@ -92,7 +92,7 @@ async def test_main(mock_client, get_user):
     }
     json_3 = MagicMock()
     json_3.to_json.return_value = {
-        "name": "stocktracker_orchestrator",
+        "name": "orchestrator_gather_data",
         "instanceId": "a664b3d1c9c84475867853c3f14a584a",
         "createdTime": "2023-03-16T17:07:26.000000Z",
         "lastUpdatedTime": "2023-03-16T17:08:32.000000Z",

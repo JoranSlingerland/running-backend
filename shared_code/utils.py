@@ -4,6 +4,7 @@ import base64
 import json
 
 import azure.functions as func
+from jsonschema import validate
 
 
 def get_unique_items(items: list, key_to_filter: str) -> list:
@@ -52,3 +53,16 @@ def get_user(
         headers = json.loads(headers)
 
     return headers
+
+
+def validate_json(instance, schema) -> None | func.HttpResponse:
+    """Validate input."""
+    try:
+        validate(instance=instance, schema=schema)
+        return None
+    except Exception:
+        return func.HttpResponse(
+            body='{"result": "Schema validation failed"}',
+            mimetype="application/json",
+            status_code=400,
+        )

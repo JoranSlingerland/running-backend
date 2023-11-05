@@ -50,7 +50,7 @@ async def get_orchestrations(start_date, end_date, client, userid):
     for instance in instances:
         instance = instance.to_json()
         if (
-            instance["name"] == "stocktracker_orchestrator"
+            instance["name"] == "orchestrator_gather_data"
             and userid in instance["input"]
         ):
             instance["createdTime"] = instance["createdTime"].replace("T", " ")
