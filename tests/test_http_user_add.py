@@ -49,8 +49,13 @@ async def test_main(cosmosdb_container_mock, get_user_mock):
     """Test add_item_to_input"""
     body = {
         "dark_mode": "system",
-        "strava_client_id": "123",
-        "strava_client_secret": "123",
+        "strava_authentication": {
+            "access_token": "123",
+            "refresh_token": "123",
+            "expires_at": 123,
+            "client_id": "123",
+            "client_secret": "123",
+        },
     }
 
     req = func.HttpRequest(

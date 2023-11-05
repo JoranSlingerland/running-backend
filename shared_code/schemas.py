@@ -7,13 +7,28 @@ def user_data() -> dict:
         "type": "object",
         "properties": {
             "dark_mode": {"type": "string", "enum": ["dark", "light", "system"]},
-            "strava_client_id": {"type": "string", "minLength": 1},
-            "strava_client_secret": {"type": "string", "minLength": 1},
+            "strava_authentication": {
+                "type": "object",
+                "properties": {
+                    "access_token": {"type": "string"},
+                    "refresh_token": {"type": "string"},
+                    "expires_at": {"type": "number"},
+                    "client_id": {"type": "string", "minLength": 1},
+                    "client_secret": {"type": "string", "minLength": 1},
+                },
+                "additionalProperties": False,
+                "required": [
+                    "access_token",
+                    "refresh_token",
+                    "expires_at",
+                    "client_id",
+                    "client_secret",
+                ],
+            },
         },
         "additionalProperties": False,
         "required": [
             "dark_mode",
-            "strava_client_id",
-            "strava_client_secret",
+            "strava_authentication",
         ],
     }

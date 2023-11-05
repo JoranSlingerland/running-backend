@@ -9,9 +9,10 @@ from unittest import mock
 
 import azure.functions as func
 import pytest
+import time_machine
 from azure.cosmos import exceptions
 
-from shared_code import aio_helper, cosmosdb_module, get_config, utils
+from shared_code import aio_helper, cosmosdb_module, get_config, strava_helpers, utils
 
 with open(Path(__file__).parent / "data" / "get_user_data.json", "r") as f:
     mock_get_user_data = json.load(f)
@@ -178,3 +179,110 @@ class TestUtils:
         user = utils.get_user(req)
 
         assert user == mock_get_user_data
+
+
+class TestStravaHelpers:
+    """Test strava_helpers.py"""
+
+    @mock.patch("shared_code.strava_helpers.Client")
+    def test_initial_strava_auth(self, mock_client):
+        """Test initial strava auth"""
+        # Arrange
+        mock_code = "test_code"
+        mock_client_id = "test_client_id"
+        mock_client_secret = "test_client_secret"
+        mock_access_token = "test_access_token"
+        mock_refresh_token = "test_refresh_token"
+        mock_expires_at = 1234567890
+
+        mock_client_instance = mock.MagicMock()
+        mock_client_instance.exchange_code_for_token.return_value = {
+            "access_token": mock_access_token,
+            "refresh_token": mock_refresh_token,
+            "expires_at": mock_expires_at,
+        }
+        mock_client.return_value = mock_client_instance
+
+        expected_auth_object = {
+            "access_token": mock_access_token,
+            "refresh_token": mock_refresh_token,
+            "expires_at": mock_expires_at,
+            "client_id": mock_client_id,
+            "client_secret": mock_client_secret,
+        }
+
+        # Act
+        result = strava_helpers.initial_strava_auth(
+            mock_code, mock_client_id, mock_client_secret
+        )
+
+        # Assert
+        assert result == expected_auth_object
+
+    @mock.patch("shared_code.strava_helpers.Client")
+    def test_refresh_strava_auth(self, mock_client):
+        """Test refresh strava auth"""
+        # Arrange
+        mock_refresh_token = "test_refresh_token"
+        mock_client_id = "test_client_id"
+        mock_client_secret = "test_client_secret"
+        mock_access_token = "test_access_token"
+        mock_new_refresh_token = "test_new_refresh_token"
+        mock_expires_at = 1234567890
+
+        mock_client_instance = mock.MagicMock()
+        mock_client_instance.refresh_access_token.return_value = {
+            "access_token": mock_access_token,
+            "refresh_token": mock_new_refresh_token,
+            "expires_at": mock_expires_at,
+        }
+        mock_client.return_value = mock_client_instance
+
+        expected_auth_object = {
+            "access_token": mock_access_token,
+            "refresh_token": mock_new_refresh_token,
+            "expires_at": mock_expires_at,
+            "client_id": mock_client_id,
+            "client_secret": mock_client_secret,
+        }
+
+        # Act
+        result = strava_helpers.refresh_strava_auth(
+            mock_refresh_token, mock_client_id, mock_client_secret
+        )
+
+        # Assert
+        assert result == expected_auth_object
+        mock_client_instance.refresh_access_token.assert_called_once_with(
+            mock_client_id, mock_client_secret, mock_refresh_token
+        )
+
+    @time_machine.travel("2025-01-01")
+    @mock.patch("shared_code.strava_helpers.Client")
+    @mock.patch("shared_code.strava_helpers.refresh_strava_auth")
+    def test_create_strava_client(self, mock_refresh_strava_auth, mock_client):
+        """Test create strava client"""
+        # Arrange
+        mock_auth_object = {
+            "access_token": "test_access_token",
+            "refresh_token": "test_refresh_token",
+            "expires_at": 1699220922,
+            "client_id": "test_client_id",
+            "client_secret": "test_client_secret",
+        }
+        mock_refresh_strava_auth.return_value = mock_auth_object
+
+        mock_client_instance = mock.MagicMock()
+        mock_client.return_value = mock_client_instance
+
+        # Act
+        result = strava_helpers.create_strava_client(mock_auth_object)
+
+        # Assert
+        mock_refresh_strava_auth.assert_called_once_with(
+            mock_auth_object["refresh_token"],
+            mock_auth_object["client_id"],
+            mock_auth_object["client_secret"],
+        )
+        assert result == (mock_client_instance, mock_auth_object, True)
+        assert mock_client_instance.access_token == mock_auth_object["access_token"]

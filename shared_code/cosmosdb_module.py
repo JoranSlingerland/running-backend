@@ -65,3 +65,22 @@ async def container_function_with_back_off(
                 random.uniform(0, 1) * min(retry_count, 1)
             )
             retry_count += 1
+
+
+def get_cosmosdb_items(
+    query: str, parameters: list, container_name: str, keys_to_pop: list
+):
+    """Get CosmosDB items"""
+    container_client = cosmosdb_container(container_name)
+    items = list(
+        container_client.query_items(
+            query=query,
+            parameters=parameters,
+            enable_cross_partition_query=True,
+        )
+    )
+
+    for key_to_pop in keys_to_pop:
+        [d.pop(key_to_pop, None) for d in items]
+
+    return items

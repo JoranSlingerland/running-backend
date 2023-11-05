@@ -61,7 +61,7 @@
     {
       "label": "pytest html coverage report",
       "type": "shell",
-      "command": "& .\\.venv\\Scripts//Activate.ps1 && pytest --cov=. --cov-report=html:coverage -vv; swa start .//coverage/",
+      "command": "& .\\.venv\\Scripts//Activate.ps1 && pytest --cov=. --cov-report=html:coverage -vv; swa start .//coverage/ --port 4281",
       "problemMatcher": [],
       "presentation": {
         "reveal": "never",
