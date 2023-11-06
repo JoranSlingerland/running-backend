@@ -1,4 +1,4 @@
-"""Get Transactions data"""
+"""Get user settings"""
 
 import logging
 
@@ -18,6 +18,7 @@ def main(payload: str) -> dict:
     parameters = [{"name": "@userid", "value": userid}]
     keys_to_pop = ["_rid", "_self", "_etag", "_attachments", "_ts"]
 
+    # TODO Handle case where user does not exist in cosmosdb
     user_settings = cosmosdb_module.get_cosmosdb_items(
         "SELECT * FROM c WHERE c.id = @userid", parameters, "users", keys_to_pop
     )[0]

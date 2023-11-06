@@ -25,12 +25,14 @@ def main(payload: str) -> dict:
 
     activities_list = [activity.dict() for activity in activities]
 
-    # Convert start_date and end_date from datetime to string
     for activity in activities_list:
         activity["start_date"] = activity["start_date"].strftime("%Y-%m-%d %H:%M:%S")
         activity["start_date_local"] = activity["start_date_local"].strftime(
             "%Y-%m-%d %H:%M:%S"
         )
+        activity["id"] = str(activity["id"])
+        activity["userId"] = user_settings["id"]
+        activity["full_data"] = False
 
     return {
         "activities": activities_list,

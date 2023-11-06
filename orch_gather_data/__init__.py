@@ -11,9 +11,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     # step 0: Get user settings and latest activity date + id from cosmosdb
     logging.info("Getting user settings from cosmosdb")
     userid = context.get_input()[0]
-    output = yield context.call_activity(
-        "act_get_user_data_and_strava_client", [userid]
-    )
+    output = yield context.call_activity("act_get_user_settings", [userid])
 
     user_settings = output["user_settings"]
     latest_activity = output["latest_activity"]
@@ -32,8 +30,19 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     # step 4: get activity streams from strava
 
     # step 5: save activity data to cosmosdb
+    logging.info("Saving activities to cosmosdb")
+    provisioning_tasks = []
+    id_ = 0
+    child_id = f"{context.instance_id}:{id_}"
+    provision_task = context.call_sub_orchestrator(
+        "sub_orch_output_to_cosmosdb",
+        [{"activities": activities}],
+        child_id,
+    )
+    provisioning_tasks.append(provision_task)
+    output = (yield context.task_all(provisioning_tasks))[0]
 
-    return "Done"
+    return output
 
 
 main = df.Orchestrator.create(orchestrator_function)

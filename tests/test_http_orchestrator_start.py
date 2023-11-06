@@ -29,7 +29,7 @@ async def test_valid_data(mock, get_user):
         url="http://localhost:7071/api/orchestrator/start",
         method="POST",
         params={
-            "functionName": "orchestrator_gather_data",
+            "functionName": "orch_gather_data",
         },
     )
 
@@ -56,7 +56,7 @@ async def test_invalid_function_name(mock):
         url="http://localhost:7071/api/orchestrator/start",
         method="POST",
         params={
-            "functionName": "orchestrator_gather_data1",
+            "functionName": "orch_gather_data1",
         },
     )
 
