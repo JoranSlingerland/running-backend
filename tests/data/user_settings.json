@@ -1,0 +1,16 @@
+{
+    "dark_mode": "dark",
+    "strava_authentication": {
+        "access_token": "123",
+        "refresh_token": "456",
+        "expires_at": 1699220922,
+        "client_id": "789",
+        "client_secret": "abc"
+    },
+    "id": "def",
+    "_rid": "JvgVAKyZHVQCAAAAAAAAAA==",
+    "_self": "dbs/JvgVAA==/colls/JvgVAKyZHVQ=/docs/JvgVAKyZHVQCAAAAAAAAAA==/",
+    "_etag": "\"00000000-0000-0000-1000-7cc3ddc001da\"",
+    "_attachments": "attachments/",
+    "_ts": 1699199724
+}
