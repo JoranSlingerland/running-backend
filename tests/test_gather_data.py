@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from gather_data import get_activities, get_user_settings
+from app.gather_data import get_activities, get_user_settings
 
 with open(Path(__file__).parent / "data" / "user_settings.json", "r") as f:
     mock_user_settings = json.load(f)

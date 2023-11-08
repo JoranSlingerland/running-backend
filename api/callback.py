@@ -7,7 +7,7 @@ from shared_code import cosmosdb_module, strava_helpers, utils
 bp = func.Blueprint()
 
 
-@bp.route(route="callback/strava", methods=["GET"], auth_level="anonymous")
+@bp.route(route="callback/strava", methods=["GET"])
 async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     """Add user data."""
     # Get request data

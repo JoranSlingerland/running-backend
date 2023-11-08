@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from callback import callback_strava
+from api.callback import callback_strava
 from shared_code.utils import create_params_func_request
 
 with open(Path(__file__).parent / "data" / "get_user_data.json", "r") as f:

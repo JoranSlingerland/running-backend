@@ -7,8 +7,8 @@ import azure.functions as func
 import pytest
 from azure.cosmos import ContainerProxy
 
+from api.user import get_user, post_user
 from shared_code.utils import create_params_func_request
-from user import get_user, post_user
 
 with open(Path(__file__).parent / "data" / "get_user_data.json", "r") as f:
     mock_get_user_data = json.load(f)

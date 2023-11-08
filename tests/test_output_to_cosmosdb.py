@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from azure.cosmos import ContainerProxy
 
-from output_to_cosmosdb import output_to_cosmosdb
+from app.output_to_cosmosdb import output_to_cosmosdb
 
 
 @pytest.mark.asyncio()

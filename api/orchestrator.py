@@ -12,7 +12,7 @@ from shared_code import aio_helper, utils
 bp = df.Blueprint()
 
 
-@bp.route(route="orchestrator/start", methods=["POST"], auth_level="anonymous")
+@bp.route(route="orchestrator/start", methods=["POST"])
 @bp.durable_client_input(client_name="client")
 async def orchestrator_start(
     req: func.HttpRequest, client: df.DurableOrchestrationClient
@@ -36,7 +36,7 @@ async def orchestrator_start(
     return client.create_check_status_response(req, instance_id)
 
 
-@bp.route(route="orchestrator/terminate", methods=["POST"], auth_level="anonymous")
+@bp.route(route="orchestrator/terminate", methods=["POST"])
 @bp.durable_client_input(client_name="client")
 async def orchestrator_terminate(
     req: func.HttpRequest, client: df.DurableOrchestrationClient
@@ -91,7 +91,7 @@ async def orchestrator_terminate(
     )
 
 
-@bp.route(route="orchestrator/purge", methods=["DELETE"], auth_level="anonymous")
+@bp.route(route="orchestrator/purge", methods=["DELETE"])
 @bp.durable_client_input(client_name="client")
 async def orchestrator_purge(
     req: func.HttpRequest, client: df.DurableOrchestrationClient
@@ -146,7 +146,7 @@ async def orchestrator_purge(
     )
 
 
-@bp.route(route="orchestrator/list", methods=["GET"], auth_level="anonymous")
+@bp.route(route="orchestrator/list", methods=["GET"])
 @bp.durable_client_input(client_name="client")
 async def orchestrator_list(
     req: func.HttpRequest, client: df.DurableOrchestrationClient

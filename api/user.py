@@ -9,7 +9,7 @@ from shared_code import cosmosdb_module, schemas, utils
 bp = func.Blueprint()
 
 
-@bp.route(route="user", methods=["GET"], auth_level="anonymous")
+@bp.route(route="user", methods=["GET"])
 def get_user(req: func.HttpRequest) -> func.HttpResponse:
     """Main function"""
     logging.info("Getting container data")
@@ -50,7 +50,7 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@bp.route(route="user", methods=["POST"], auth_level="anonymous")
+@bp.route(route="user", methods=["POST"])
 async def post_user(req: func.HttpRequest) -> func.HttpResponse:
     """Add user data."""
     try:
