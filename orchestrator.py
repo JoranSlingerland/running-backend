@@ -12,9 +12,11 @@ from shared_code import aio_helper, utils
 bp = df.Blueprint()
 
 
-@bp.route(route="orchestrator/start", methods=["GET"], auth_level="anonymous")
+@bp.route(route="orchestrator/start", methods=["POST"], auth_level="anonymous")
 @bp.durable_client_input(client_name="client")
-async def orchestrator_start(req: func.HttpRequest, client) -> func.HttpResponse:
+async def orchestrator_start(
+    req: func.HttpRequest, client: df.DurableOrchestrationClient
+) -> func.HttpResponse:
     """Http Trigger"""
 
     function_name = req.params.get("functionName", None)
@@ -36,7 +38,9 @@ async def orchestrator_start(req: func.HttpRequest, client) -> func.HttpResponse
 
 @bp.route(route="orchestrator/terminate", methods=["POST"], auth_level="anonymous")
 @bp.durable_client_input(client_name="client")
-async def orchestrator_terminate(req: func.HttpRequest, client) -> func.HttpResponse:
+async def orchestrator_terminate(
+    req: func.HttpRequest, client: df.DurableOrchestrationClient
+) -> func.HttpResponse:
     """Terminate orchestration"""
     instance_id = req.params.get("instanceId", None)
 
@@ -89,7 +93,9 @@ async def orchestrator_terminate(req: func.HttpRequest, client) -> func.HttpResp
 
 @bp.route(route="orchestrator/purge", methods=["DELETE"], auth_level="anonymous")
 @bp.durable_client_input(client_name="client")
-async def orchestrator_purge(req: func.HttpRequest, client) -> func.HttpResponse:
+async def orchestrator_purge(
+    req: func.HttpRequest, client: df.DurableOrchestrationClient
+) -> func.HttpResponse:
     """Purge orchestration"""
     instance_id = req.params.get("instanceId", None)
 
@@ -142,7 +148,9 @@ async def orchestrator_purge(req: func.HttpRequest, client) -> func.HttpResponse
 
 @bp.route(route="orchestrator/list", methods=["GET"], auth_level="anonymous")
 @bp.durable_client_input(client_name="client")
-async def orchestrator_list(req: func.HttpRequest, client) -> func.HttpResponse:
+async def orchestrator_list(
+    req: func.HttpRequest, client: df.DurableOrchestrationClient
+) -> func.HttpResponse:
     """List all orchestrations"""
     logging.info("Getting all orchestrations")
 
@@ -171,7 +179,12 @@ async def orchestrator_list(req: func.HttpRequest, client) -> func.HttpResponse:
     )
 
 
-async def get_orchestrations(start_date, end_date, client, userid):
+async def get_orchestrations(
+    start_date: datetime,
+    end_date: datetime,
+    client: df.DurableOrchestrationClient,
+    userid: str,
+) -> list:
     """Get orchestrations"""
     instances = await client.get_status_by(
         created_time_from=start_date, created_time_to=end_date

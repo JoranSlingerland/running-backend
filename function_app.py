@@ -10,13 +10,19 @@ from user import bp as user_bp
 
 app = func.FunctionApp()
 
-blueprints = [
-    user_bp,
-    callback_bp,
-    orchestrator_bp,
-    gather_data_bp,
-    output_to_cosmosdb_bp,
-]
 
-for blueprint in blueprints:
-    app.register_blueprint(blueprint)
+def main():
+    """Main function."""
+    blueprints = [
+        user_bp,
+        callback_bp,
+        orchestrator_bp,
+        gather_data_bp,
+        output_to_cosmosdb_bp,
+    ]
+
+    for blueprint in blueprints:
+        app.register_blueprint(blueprint)
+
+
+main()

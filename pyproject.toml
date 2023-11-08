@@ -40,7 +40,7 @@ target-version = "py311"
 
 [tool.ruff.per-file-ignores]
 "shared_code/cosmosdb_module.py" = ["S311"]
-"tests/test_http_callback_strava.py" = ["S106"]
+"tests/test_callback.py" = ["S106"]
 "tests/test_shared_code.py" = ["S105"]
 
 [tool.ruff.mccabe]
