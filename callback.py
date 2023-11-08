@@ -4,8 +4,11 @@ import azure.functions as func
 
 from shared_code import cosmosdb_module, strava_helpers, utils
 
+bp = func.Blueprint()
 
-async def main(req: func.HttpRequest) -> func.HttpResponse:
+
+@bp.route(route="callback/strava", methods=["GET"], auth_level="anonymous")
+async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     """Add user data."""
     # Get request data
     code = req.params.get("code")

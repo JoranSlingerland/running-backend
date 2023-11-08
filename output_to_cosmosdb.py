@@ -1,13 +1,34 @@
-"""Function to output data to CosmosDB"""
-
+"""Output to CosmosDB orchestrator and activity functions"""
 
 import logging
 from functools import partial
 
+import azure.durable_functions as df
+
 from shared_code import aio_helper, cosmosdb_module
 
+bp = df.Blueprint()
 
-async def main(payload: str) -> str:
+
+@bp.orchestration_trigger(context_name="context")
+def sub_orch_output_to_cosmosdb(context: df.DurableOrchestrationContext):
+    """Orchestrator function"""
+    data = context.get_input()[0]
+
+    result = {"status": "No data to process"}
+
+    for container_name, items in data.items():
+        items = [items[i : i + 5000] for i in range(0, len(items), 5000)]
+        for batch in items:
+            result = yield context.call_activity(
+                "output_to_cosmosdb", [container_name, batch]
+            )
+
+    return result
+
+
+@bp.activity_trigger(input_name="payload")
+async def output_to_cosmosdb(payload: str) -> str:
     """Function to output data to CosmosDB"""
 
     # suppress logger output
