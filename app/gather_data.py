@@ -108,9 +108,9 @@ def get_activities(payload: str) -> dict:
     activities_list = [activity.dict() for activity in activities]
 
     for activity in activities_list:
-        activity["start_date"] = activity["start_date"].strftime("%Y-%m-%d %H:%M:%S")
+        activity["start_date"] = activity["start_date"].strftime("%Y-%m-%dT%H:%M:%SZ")
         activity["start_date_local"] = activity["start_date_local"].strftime(
-            "%Y-%m-%d %H:%M:%S"
+            "%Y-%m-%dT%H:%M:%SZ"
         )
         activity["id"] = str(activity["id"])
         activity["userId"] = user_settings["id"]

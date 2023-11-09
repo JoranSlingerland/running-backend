@@ -55,10 +55,10 @@ class MockActivity:
 
         self.data = data
         self.data["start_date"] = datetime.strptime(
-            data["start_date"], "%Y-%m-%d %H:%M:%S"
+            data["start_date"], "%Y-%m-%dT%H:%M:%SZ"
         ).replace(tzinfo=timezone(timedelta(hours=0)))
         self.data["start_date_local"] = datetime.strptime(
-            data["start_date_local"], "%Y-%m-%d %H:%M:%S"
+            data["start_date_local"], "%Y-%m-%dT%H:%M:%SZ"
         )
 
     def dict(self):
@@ -82,16 +82,16 @@ class TestGetActivities:
             MockActivity(
                 {
                     "id": "1",
-                    "start_date": "2022-01-01 00:00:00",
-                    "start_date_local": "2022-01-01 00:00:00",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
                 }
             ),
             MockActivity(
                 {
                     "id": "2",
-                    "start_date": "2022-01-02 00:00:00",
-                    "start_date_local": "2022-01-02 00:00:00",
+                    "start_date": "2022-01-02T00:00:00Z",
+                    "start_date_local": "2022-01-02T00:00:00Z",
                     "userId": "def",
                 }
             ),
@@ -102,15 +102,15 @@ class TestGetActivities:
             "activities": [
                 {
                     "id": "1",
-                    "start_date": "2022-01-01 00:00:00",
-                    "start_date_local": "2022-01-01 00:00:00",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
                     "full_data": False,
                 },
                 {
                     "id": "2",
-                    "start_date": "2022-01-02 00:00:00",
-                    "start_date_local": "2022-01-02 00:00:00",
+                    "start_date": "2022-01-02T00:00:00Z",
+                    "start_date_local": "2022-01-02T00:00:00Z",
                     "userId": "def",
                     "full_data": False,
                 },
@@ -140,16 +140,16 @@ class TestGetActivities:
             MockActivity(
                 {
                     "id": "1",
-                    "start_date": "2022-01-01 00:00:00",
-                    "start_date_local": "2022-01-01 00:00:00",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
                 }
             ),
             MockActivity(
                 {
                     "id": "2",
-                    "start_date": "2022-01-02 00:00:00",
-                    "start_date_local": "2022-01-02 00:00:00",
+                    "start_date": "2022-01-02T00:00:00Z",
+                    "start_date_local": "2022-01-02T00:00:00Z",
                     "userId": "def",
                 }
             ),
@@ -160,15 +160,15 @@ class TestGetActivities:
             "activities": [
                 {
                     "id": "1",
-                    "start_date": "2022-01-01 00:00:00",
-                    "start_date_local": "2022-01-01 00:00:00",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
                     "full_data": False,
                 },
                 {
                     "id": "2",
-                    "start_date": "2022-01-02 00:00:00",
-                    "start_date_local": "2022-01-02 00:00:00",
+                    "start_date": "2022-01-02T00:00:00Z",
+                    "start_date_local": "2022-01-02T00:00:00Z",
                     "userId": "def",
                     "full_data": False,
                 },
