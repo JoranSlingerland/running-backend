@@ -99,7 +99,6 @@ def get_activities(payload: str) -> dict:
 
     if not latest_activity["id"] or not latest_activity["start_date"]:
         activities = client.get_activities()
-
     else:
         activities = client.get_activities(
             after=latest_activity["start_date"],
@@ -115,6 +114,8 @@ def get_activities(payload: str) -> dict:
         activity["id"] = str(activity["id"])
         activity["userId"] = user_settings["id"]
         activity["full_data"] = False
+        activity.pop("athlete")
+        activity.pop("splits_standard")
 
     return {
         "activities": activities_list,
