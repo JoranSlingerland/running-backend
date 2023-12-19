@@ -85,6 +85,8 @@ class TestGetActivities:
                     "start_date": "2022-01-01T00:00:00Z",
                     "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
+                    "athlete": "test",
+                    "splits_standard": "test",
                 }
             ),
             MockActivity(
@@ -93,6 +95,8 @@ class TestGetActivities:
                     "start_date": "2022-01-02T00:00:00Z",
                     "start_date_local": "2022-01-02T00:00:00Z",
                     "userId": "def",
+                    "athlete": "test",
+                    "splits_standard": "test",
                 }
             ),
         ]
@@ -143,6 +147,8 @@ class TestGetActivities:
                     "start_date": "2022-01-01T00:00:00Z",
                     "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
+                    "athlete": "test",
+                    "splits_standard": "test",
                 }
             ),
             MockActivity(
@@ -151,6 +157,8 @@ class TestGetActivities:
                     "start_date": "2022-01-02T00:00:00Z",
                     "start_date_local": "2022-01-02T00:00:00Z",
                     "userId": "def",
+                    "athlete": "test",
+                    "splits_standard": "test",
                 }
             ),
         ]
