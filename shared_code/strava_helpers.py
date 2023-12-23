@@ -65,3 +65,59 @@ def create_strava_client(user_settings: object) -> Tuple[Client, dict, bool]:
         client,
         user_settings,
     )
+
+
+def cleanup_activity(activity: dict, user_id: str, full_data: bool) -> object:
+    """Cleanup activity"""
+    # convert datetime to string
+    activity["start_date"] = activity["start_date"].strftime("%Y-%m-%dT%H:%M:%SZ")
+    activity["start_date_local"] = activity["start_date_local"].strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    if activity["laps"] is not None:
+        for lap in activity["laps"]:
+            lap["start_date"] = lap["start_date"].strftime("%Y-%m-%dT%H:%M:%SZ")
+            lap["start_date_local"] = lap["start_date_local"].strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+    if activity["best_efforts"] is not None:
+        for effort in activity["best_efforts"]:
+            effort["start_date"] = effort["start_date"].strftime("%Y-%m-%dT%H:%M:%SZ")
+            effort["start_date_local"] = effort["start_date_local"].strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+    # Add custom fields
+    activity["id"] = str(activity["id"])
+    activity["userId"] = user_id
+    activity["full_data"] = full_data
+
+    # Remove fields
+    fields_to_remove = [
+        "athlete",
+        "splits_standard",
+        "segment_efforts",
+        "comment_count",
+        "commute",
+        "flagged",
+        "has_kudoed",
+        "hide_from_home",
+        "kudos_count",
+        "photo_count",
+        "private",
+        "total_photo_count",
+        "photos",
+        "suffer_score",
+        "instagram_primary_photo",
+        "partner_logo_url",
+        "partner_brand_tag",
+        "from_accepted_tag",
+        "segment_leaderboard_opt_out",
+    ]
+    for field in fields_to_remove:
+        activity.pop(field)
+    if activity["best_efforts"] is not None:
+        for effort in activity["best_efforts"]:
+            effort.pop("athlete")
+            effort.pop("activity")
+
+    return activity

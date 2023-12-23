@@ -1,11 +1,18 @@
 """Test act_get_user_settings.py"""
 
 import json
+import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
-from app.gather_data import get_activities, get_user_settings
+from azure.storage.queue import QueueClient
+
+from app.gather_data import (
+    add_activity_to_enrichment_queue,
+    get_activities,
+    get_user_settings,
+)
 
 with open(Path(__file__).parent / "data" / "user_settings.json", "r") as f:
     mock_user_settings = json.load(f)
@@ -87,16 +94,54 @@ class TestGetActivities:
                     "userId": "def",
                     "athlete": "test",
                     "splits_standard": "test",
+                    "segment_efforts": "test",
+                    "laps": None,
+                    "best_efforts": None,
+                    "comment_count": "test",
+                    "commute": "test",
+                    "flagged": "test",
+                    "has_kudoed": "test",
+                    "hide_from_home": "test",
+                    "kudos_count": "test",
+                    "photo_count": "test",
+                    "private": "test",
+                    "total_photo_count": "test",
+                    "photos": "test",
+                    "suffer_score": "test",
+                    "instagram_primary_photo": "test",
+                    "partner_logo_url": "test",
+                    "partner_brand_tag": "test",
+                    "from_accepted_tag": "test",
+                    "segment_leaderboard_opt_out": "test",
                 }
             ),
             MockActivity(
                 {
-                    "id": "2",
-                    "start_date": "2022-01-02T00:00:00Z",
-                    "start_date_local": "2022-01-02T00:00:00Z",
+                    "id": "1",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
                     "athlete": "test",
                     "splits_standard": "test",
+                    "segment_efforts": "test",
+                    "laps": None,
+                    "best_efforts": None,
+                    "comment_count": "test",
+                    "commute": "test",
+                    "flagged": "test",
+                    "has_kudoed": "test",
+                    "hide_from_home": "test",
+                    "kudos_count": "test",
+                    "photo_count": "test",
+                    "private": "test",
+                    "total_photo_count": "test",
+                    "photos": "test",
+                    "suffer_score": "test",
+                    "instagram_primary_photo": "test",
+                    "partner_logo_url": "test",
+                    "partner_brand_tag": "test",
+                    "from_accepted_tag": "test",
+                    "segment_leaderboard_opt_out": "test",
                 }
             ),
         ]
@@ -109,13 +154,17 @@ class TestGetActivities:
                     "start_date": "2022-01-01T00:00:00Z",
                     "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
+                    "laps": None,
+                    "best_efforts": None,
                     "full_data": False,
                 },
                 {
-                    "id": "2",
-                    "start_date": "2022-01-02T00:00:00Z",
-                    "start_date_local": "2022-01-02T00:00:00Z",
+                    "id": "1",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
+                    "laps": None,
+                    "best_efforts": None,
                     "full_data": False,
                 },
             ],
@@ -149,16 +198,54 @@ class TestGetActivities:
                     "userId": "def",
                     "athlete": "test",
                     "splits_standard": "test",
+                    "segment_efforts": "test",
+                    "laps": None,
+                    "best_efforts": None,
+                    "comment_count": "test",
+                    "commute": "test",
+                    "flagged": "test",
+                    "has_kudoed": "test",
+                    "hide_from_home": "test",
+                    "kudos_count": "test",
+                    "photo_count": "test",
+                    "private": "test",
+                    "total_photo_count": "test",
+                    "photos": "test",
+                    "suffer_score": "test",
+                    "instagram_primary_photo": "test",
+                    "partner_logo_url": "test",
+                    "partner_brand_tag": "test",
+                    "from_accepted_tag": "test",
+                    "segment_leaderboard_opt_out": "test",
                 }
             ),
             MockActivity(
                 {
-                    "id": "2",
-                    "start_date": "2022-01-02T00:00:00Z",
-                    "start_date_local": "2022-01-02T00:00:00Z",
+                    "id": "1",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
                     "athlete": "test",
                     "splits_standard": "test",
+                    "segment_efforts": "test",
+                    "laps": None,
+                    "best_efforts": None,
+                    "comment_count": "test",
+                    "commute": "test",
+                    "flagged": "test",
+                    "has_kudoed": "test",
+                    "hide_from_home": "test",
+                    "kudos_count": "test",
+                    "photo_count": "test",
+                    "private": "test",
+                    "total_photo_count": "test",
+                    "photos": "test",
+                    "suffer_score": "test",
+                    "instagram_primary_photo": "test",
+                    "partner_logo_url": "test",
+                    "partner_brand_tag": "test",
+                    "from_accepted_tag": "test",
+                    "segment_leaderboard_opt_out": "test",
                 }
             ),
         ]
@@ -171,13 +258,17 @@ class TestGetActivities:
                     "start_date": "2022-01-01T00:00:00Z",
                     "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
+                    "laps": None,
+                    "best_efforts": None,
                     "full_data": False,
                 },
                 {
-                    "id": "2",
-                    "start_date": "2022-01-02T00:00:00Z",
-                    "start_date_local": "2022-01-02T00:00:00Z",
+                    "id": "1",
+                    "start_date": "2022-01-01T00:00:00Z",
+                    "start_date_local": "2022-01-01T00:00:00Z",
                     "userId": "def",
+                    "laps": None,
+                    "best_efforts": None,
                     "full_data": False,
                 },
             ],
@@ -194,3 +285,38 @@ class TestGetActivities:
         mock_client.get_activities.assert_called_once_with(
             after=mock_payload[0]["start_date"]
         )
+
+
+class TestAddActivityToEnrichmentQueue:
+    """Test add_activity_to_enrichment_queue"""
+
+    @patch.dict(
+        os.environ,
+        {
+            "AZUREWEBJOBSSTORAGE": "test_endpoint",
+        },
+    )
+    @patch.object(QueueClient, "from_connection_string", return_value=Mock())
+    def test_add_activity_to_enrichment_queue(self, mock_queue_client):
+        """Test the main function."""
+        mock_queue_client.return_value.send_message = Mock()
+
+        payload = [
+            {"id": "123", "userId": "abc"},
+            {"id": "456", "userId": "def"},
+        ]
+
+        # Call
+        func_call = add_activity_to_enrichment_queue.build().get_user_function()
+        result = func_call([payload])
+
+        # Assert
+        assert result == {"status": "success"}
+        assert mock_queue_client.return_value.send_message.call_count == len(payload)
+
+        for activity in payload:
+            mock_queue_client.return_value.send_message.assert_any_call(
+                json.dumps(
+                    {"activity_id": activity["id"], "user_id": activity["userId"]}
+                )
+            )

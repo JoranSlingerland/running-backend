@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import datetime
 import json
 import os
 from pathlib import Path
@@ -80,28 +81,28 @@ class TestCosmosdbModule:
         assert result == mock_container_client
 
     @pytest.mark.asyncio()
-    async def test_container_function_with_back_off(self):
+    async def test_container_function_with_back_off_async(self):
         """Test container function with back off"""
         function = mock.AsyncMock()
         max_retries = 2
         delay = 0.1
         max_delay = 1
 
-        await cosmosdb_module.container_function_with_back_off(
+        await cosmosdb_module.container_function_with_back_off_async(
             function, max_retries, delay, max_delay
         )
         function.assert_called_once()
 
         function.reset_mock()
         function.side_effect = exceptions.CosmosResourceExistsError()
-        await cosmosdb_module.container_function_with_back_off(
+        await cosmosdb_module.container_function_with_back_off_async(
             function, max_retries, delay, max_delay
         )
         function.assert_called_once()
 
         function.reset_mock()
         function.side_effect = exceptions.CosmosHttpResponseError(status_code=404)
-        await cosmosdb_module.container_function_with_back_off(
+        await cosmosdb_module.container_function_with_back_off_async(
             function, max_retries, delay, max_delay
         )
         function.assert_called_once()
@@ -111,7 +112,43 @@ class TestCosmosdbModule:
 
         # should raise an exception exception("test exception")
         with pytest.raises(Exception, match="test exception"):
-            await cosmosdb_module.container_function_with_back_off(
+            await cosmosdb_module.container_function_with_back_off_async(
+                function, max_retries, delay, max_delay
+            )
+        assert function.call_count == max_retries + 1
+
+    def test_container_function_with_back_off(self):
+        """Test container function with back off"""
+        function = mock.Mock()
+        max_retries = 2
+        delay = 0.1
+        max_delay = 1
+
+        cosmosdb_module.container_function_with_back_off(
+            function, max_retries, delay, max_delay
+        )
+        function.assert_called_once()
+
+        function.reset_mock()
+        function.side_effect = exceptions.CosmosResourceExistsError()
+        cosmosdb_module.container_function_with_back_off(
+            function, max_retries, delay, max_delay
+        )
+        function.assert_called_once()
+
+        function.reset_mock()
+        function.side_effect = exceptions.CosmosHttpResponseError(status_code=404)
+        cosmosdb_module.container_function_with_back_off(
+            function, max_retries, delay, max_delay
+        )
+        function.assert_called_once()
+
+        function.reset_mock()
+        function.side_effect = Exception("test exception")
+
+        # should raise an exception exception("test exception")
+        with pytest.raises(Exception, match="test exception"):
+            cosmosdb_module.container_function_with_back_off(
                 function, max_retries, delay, max_delay
             )
         assert function.call_count == max_retries + 1
@@ -269,3 +306,79 @@ class TestStravaHelpers:
             mock_client_instance.access_token
             == mock_user_settings["strava_authentication"]["access_token"]
         )
+
+    def test_cleanup_activity(self):
+        """Test cleanup activity"""
+        # Create a mock activity
+        mock_activity = {
+            "start_date": datetime.datetime.now(),
+            "start_date_local": datetime.datetime.now(),
+            "laps": [
+                {
+                    "start_date": datetime.datetime.now(),
+                    "start_date_local": datetime.datetime.now(),
+                }
+            ],
+            "best_efforts": [
+                {
+                    "start_date": datetime.datetime.now(),
+                    "start_date_local": datetime.datetime.now(),
+                    "athlete": "mock_athlete",
+                    "activity": "mock_activity",
+                }
+            ],
+            "id": 123,
+            "athlete": "mock_athlete",
+            "splits_standard": "mock_splits_standard",
+            "segment_efforts": "mock_segment_efforts",
+            "comment_count": "mock_comment_count",
+            "commute": "mock_commute",
+            "flagged": "mock_flagged",
+            "has_kudoed": "mock_has_kudoed",
+            "hide_from_home": "mock_hide_from_home",
+            "kudos_count": "mock_kudos_count",
+            "photo_count": "mock_photo_count",
+            "private": "mock_private",
+            "total_photo_count": "mock_total_photo_count",
+            "photos": "mock_photos",
+            "suffer_score": "mock_suffer_score",
+            "instagram_primary_photo": "mock_instagram_primary_photo",
+            "partner_logo_url": "mock_partner_logo_url",
+            "partner_brand_tag": "mock_partner_brand_tag",
+            "from_accepted_tag": "mock_from_accepted_tag",
+            "segment_leaderboard_opt_out": "mock_segment_leaderboard_opt_out",
+        }
+
+        # Call cleanup_activity with the mock activity
+        cleaned_activity = strava_helpers.cleanup_activity(
+            mock_activity, "mock_user_id", True
+        )
+
+        # Check that the returned activity has the expected format
+        assert isinstance(cleaned_activity, dict)
+        assert "start_date" in cleaned_activity
+        assert "start_date_local" in cleaned_activity
+        assert "laps" in cleaned_activity
+        assert "best_efforts" in cleaned_activity
+        assert "id" in cleaned_activity
+        assert "userId" in cleaned_activity
+        assert "full_data" in cleaned_activity
+        assert "athlete" not in cleaned_activity
+        assert "splits_standard" not in cleaned_activity
+        assert "segment_efforts" not in cleaned_activity
+        assert "comment_count" not in cleaned_activity
+        assert "commute" not in cleaned_activity
+        assert "flagged" not in cleaned_activity
+        assert "has_kudoed" not in cleaned_activity
+        assert "hide_from_home" not in cleaned_activity
+        assert "kudos_count" not in cleaned_activity
+        assert "photo_count" not in cleaned_activity
+        assert "private" not in cleaned_activity
+        assert "total_photo_count" not in cleaned_activity
+        assert "photos" not in cleaned_activity
+        assert "suffer_score" not in cleaned_activity
+        assert "instagram_primary_photo" not in cleaned_activity
+        assert "partner_logo_url" not in cleaned_activity
+        assert "partner_brand_tag" not in cleaned_activity
+        assert "from_accepted_tag" not in cleaned_activity
+        assert "segment_leaderboard_opt_out" not in cleaned_activity

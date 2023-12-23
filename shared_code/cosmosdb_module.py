@@ -4,6 +4,7 @@
 import asyncio
 import logging
 import random
+import time
 from typing import Callable
 
 from azure.cosmos import cosmos_client, exceptions
@@ -35,7 +36,7 @@ def cosmosdb_container(container_name: str):
     return container
 
 
-async def container_function_with_back_off(
+async def container_function_with_back_off_async(
     function: Callable,
     max_retries: int = 10,
     delay: float = random.uniform(0.0, 0.2),
@@ -61,6 +62,38 @@ async def container_function_with_back_off(
             logging.debug(err)
             logging.debug(f"Retrying in {delay} seconds")
             await asyncio.sleep(delay)
+            delay = min(delay * 2, max_delay) + (
+                random.uniform(0, 1) * min(retry_count, 1)
+            )
+            retry_count += 1
+
+
+def container_function_with_back_off(
+    function: Callable,
+    max_retries: int = 10,
+    delay: float = random.uniform(0.0, 0.2),
+    max_delay: int = 5,
+):
+    """Fill with backoff"""
+    retry_count = 0
+    while True:
+        try:
+            function()
+            break
+        except exceptions.CosmosResourceExistsError:
+            logging.debug("Item already exists")
+            break
+        except exceptions.CosmosHttpResponseError as err:
+            if err.status_code == 404:
+                logging.debug("Item not found")
+                break
+        except Exception as err:
+            if retry_count >= max_retries:
+                logging.error("Max retries reached")
+                raise err
+            logging.debug(err)
+            logging.debug(f"Retrying in {delay} seconds")
+            time.sleep(delay)
             delay = min(delay * 2, max_delay) + (
                 random.uniform(0, 1) * min(retry_count, 1)
             )

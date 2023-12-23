@@ -1,8 +1,11 @@
 """Gather data orchestration and activity functions"""
 
+import json
 import logging
+import os
 
 import azure.durable_functions as df
+from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 
 from shared_code import cosmosdb_module, strava_helpers
 
@@ -12,16 +15,16 @@ bp = df.Blueprint()
 @bp.orchestration_trigger(context_name="context")
 def orch_gather_data(context: df.DurableOrchestrationContext):
     """Orchestrator function"""
-    # step 0: Get user settings and latest activity date + id from cosmosdb
-    logging.info("Getting user settings from cosmosdb")
+    # step 1: Get user settings and latest activity date + id from cosmosdb
+    logging.info("Step 1: Getting user settings from cosmosdb")
     userid = context.get_input()[0]
     output = yield context.call_activity("get_user_settings", [userid])
 
     user_settings = output["user_settings"]
     latest_activity = output["latest_activity"]
 
-    # step 1: get activities from strava from latest activity date + id
-    logging.info("Getting activities from strava")
+    # step 2: get activities from strava from latest activity date + id
+    logging.info("Step 2: Getting activities from strava")
     output = yield context.call_activity(
         "get_activities", [latest_activity, user_settings]
     )
@@ -29,14 +32,10 @@ def orch_gather_data(context: df.DurableOrchestrationContext):
     activities = output["activities"]
     user_settings = output["user_settings"]
 
-    # step 3: get detailed activity data from strava
-
-    # step 4: get activity streams from strava
-
-    # step 5: save activity data to cosmosdb
-    logging.info("Saving activities to cosmosdb")
+    # step 3: save activity data to cosmosdb
+    logging.info("Step 3: Saving activities to cosmosdb")
     provisioning_tasks = []
-    id_ = 0
+    id_ = 1
     child_id = f"{context.instance_id}:{id_}"
     provision_task = context.call_sub_orchestrator(
         "sub_orch_output_to_cosmosdb",
@@ -45,6 +44,10 @@ def orch_gather_data(context: df.DurableOrchestrationContext):
     )
     provisioning_tasks.append(provision_task)
     output = (yield context.task_all(provisioning_tasks))[0]
+
+    # step 4: add activity id to enrichment queue
+    logging.info("Step 4: Adding activity id to enrichment queue")
+    yield context.call_activity("add_activity_to_enrichment_queue", [activities])
 
     return output
 
@@ -107,17 +110,31 @@ def get_activities(payload: str) -> dict:
     activities_list = [activity.dict() for activity in activities]
 
     for activity in activities_list:
-        activity["start_date"] = activity["start_date"].strftime("%Y-%m-%dT%H:%M:%SZ")
-        activity["start_date_local"] = activity["start_date_local"].strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        )
-        activity["id"] = str(activity["id"])
-        activity["userId"] = user_settings["id"]
-        activity["full_data"] = False
-        activity.pop("athlete")
-        activity.pop("splits_standard")
+        activity = strava_helpers.cleanup_activity(activity, user_settings["id"], False)
 
     return {
         "activities": activities_list,
         "user_settings": user_settings,
     }
+
+
+@bp.activity_trigger(input_name="payload")
+def add_activity_to_enrichment_queue(payload: str) -> dict:
+    """Orchestrator function"""
+
+    activities = payload[0]
+
+    account_url = os.environ["AZUREWEBJOBSSTORAGE"]
+    queue_name = "enrichment-queue"
+
+    queue_client = QueueClient.from_connection_string(
+        conn_str=account_url,
+        queue_name=queue_name,
+        message_encode_policy=TextBase64EncodePolicy(),
+    )
+    for activity in activities:
+        queue_client.send_message(
+            json.dumps({"activity_id": activity["id"], "user_id": activity["userId"]})
+        )
+
+    return {"status": "success"}

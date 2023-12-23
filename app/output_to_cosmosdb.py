@@ -47,7 +47,7 @@ async def output_to_cosmosdb(payload: str) -> str:
     for item in items:
         # fill event loop list
         tasks.append(
-            cosmosdb_module.container_function_with_back_off(
+            cosmosdb_module.container_function_with_back_off_async(
                 partial(container.create_item, item)
             )
         )
