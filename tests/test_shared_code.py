@@ -225,6 +225,13 @@ class TestStravaHelpers:
     """Test strava_helpers.py"""
 
     @mock.patch("shared_code.strava_helpers.Client")
+    @mock.patch.dict(
+        os.environ,
+        {
+            "STRAVA_CLIENT_ID": "test_client_id",
+            "STRAVA_CLIENT_SECRET": "test_client_secret",
+        },
+    )
     def test_initial_strava_auth(self, mock_client):
         """Test initial strava auth"""
         # Arrange
