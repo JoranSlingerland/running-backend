@@ -12,6 +12,7 @@ async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     """Add user data."""
     # Get request data
     code = req.params.get("code")
+    scope = req.params.get("scope")
     userid = utils.get_user(req)["userId"]
 
     # Set parameters
@@ -19,9 +20,17 @@ async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     keys_to_pop = ["_rid", "_self", "_etag", "_attachments", "_ts"]
 
     # Validate request
-    if not code:
+    if not code or not scope:
         return func.HttpResponse(
-            body='{"result": "Invalid code"}',
+            body='{"result": "Missing code or scope"}',
+            mimetype="application/json",
+            status_code=400,
+        )
+
+    expected_scope = ["read", "activity:read_all", "profile:read_all"]
+    if sorted(scope.split(",")) != sorted(expected_scope):
+        return func.HttpResponse(
+            body='{"result": "Invalid scope"}',
             mimetype="application/json",
             status_code=400,
         )
@@ -39,21 +48,9 @@ async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     else:
         user_settings = user_settings[0]
 
-    if (
-        not user_settings["strava_authentication"]["client_id"]
-        or not user_settings["strava_authentication"]["client_secret"]
-    ):
-        return func.HttpResponse(
-            body='{"result": "Please fill in client_id and client_secret in user settings"}',
-            mimetype="application/json",
-            status_code=400,
-        )
-
     # Get Strava authentication object
     auth_object = strava_helpers.initial_strava_auth(
         code,
-        client_id=user_settings["strava_authentication"]["client_id"],
-        client_secret=user_settings["strava_authentication"]["client_secret"],
     )
 
     # Update user settings
@@ -62,7 +59,7 @@ async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     container.upsert_item(user_settings)
 
     return func.HttpResponse(
-        body='{"result": "done"}',
+        body='{"result": "Success"}',
         mimetype="application/json",
         status_code=200,
     )

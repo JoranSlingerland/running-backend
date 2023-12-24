@@ -3,9 +3,7 @@
     "strava_authentication": {
         "access_token": "123",
         "refresh_token": "456",
-        "expires_at": 1699220922,
-        "client_id": "789",
-        "client_secret": "abc"
+        "expires_at": 1699220922
     },
     "id": "def",
     "_rid": "JvgVAKyZHVQCAAAAAAAAAA==",

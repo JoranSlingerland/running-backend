@@ -240,14 +240,19 @@ class TestStravaHelpers:
         mock_client.return_value = mock_client_instance
 
         # Act
-        result = strava_helpers.initial_strava_auth(
-            mock_code, auth_object["client_id"], auth_object["client_secret"]
-        )
+        result = strava_helpers.initial_strava_auth(mock_code)
 
         # Assert
         assert result == auth_object
 
     @mock.patch("shared_code.strava_helpers.Client")
+    @mock.patch.dict(
+        os.environ,
+        {
+            "STRAVA_CLIENT_ID": "test_client_id",
+            "STRAVA_CLIENT_SECRET": "test_client_secret",
+        },
+    )
     def test_refresh_strava_auth(self, mock_client):
         """Test refresh strava auth"""
         # Arrange
@@ -264,15 +269,13 @@ class TestStravaHelpers:
         # Act
         result = strava_helpers.refresh_strava_auth(
             auth_object["refresh_token"],
-            auth_object["client_id"],
-            auth_object["client_secret"],
         )
 
         # Assert
         assert result == auth_object
         mock_client_instance.refresh_access_token.assert_called_once_with(
-            auth_object["client_id"],
-            auth_object["client_secret"],
+            "test_client_id",
+            "test_client_secret",
             auth_object["refresh_token"],
         )
 
@@ -298,8 +301,6 @@ class TestStravaHelpers:
         # Assert
         mock_refresh_strava_auth.assert_called_once_with(
             mock_user_settings["strava_authentication"]["refresh_token"],
-            mock_user_settings["strava_authentication"]["client_id"],
-            mock_user_settings["strava_authentication"]["client_secret"],
         )
         assert result == (mock_client_instance, mock_user_settings)
         assert (

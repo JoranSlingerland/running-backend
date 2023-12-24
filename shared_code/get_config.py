@@ -17,3 +17,14 @@ def get_cosmosdb() -> dict[str, str]:
         "key": os.environ["COSMOSDB_KEY"],
         "database": os.environ["COSMOSDB_DATABASE"],
     }
+
+
+def get_strava_auth() -> dict[str, str]:
+    """Get strava auth"""
+
+    load_dotenv()
+
+    return {
+        "client_id": os.environ["STRAVA_CLIENT_ID"],
+        "client_secret": os.environ["STRAVA_CLIENT_SECRET"],
+    }

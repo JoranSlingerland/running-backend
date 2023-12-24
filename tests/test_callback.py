@@ -29,7 +29,22 @@ class TestStrava:
         func_call = callback_strava.build().get_user_function()
         response = await func_call(req)
         assert response.status_code == 400
-        assert response.get_body() == b'{"result": "Invalid code"}'
+        assert response.get_body() == b'{"result": "Missing code or scope"}'
+
+    @patch("shared_code.utils.get_user")
+    async def test_invalid_scope_param(self, get_user_mock):
+        """Test no code param"""
+        req = create_params_func_request(
+            method="get",
+            params={"code": "code", "scope": "read,activity:read_all"},
+            url="/api/callback/strava",
+        )
+        get_user_mock.return_value = mock_get_user_data
+
+        func_call = callback_strava.build().get_user_function()
+        response = await func_call(req)
+        assert response.status_code == 400
+        assert response.get_body() == b'{"result": "Invalid scope"}'
 
     @patch("shared_code.utils.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
@@ -38,9 +53,7 @@ class TestStrava:
         req = create_params_func_request(
             url="http://localhost:7071/api/user",
             method="GET",
-            params={
-                "code": "code",
-            },
+            params={"code": "code", "scope": "read,activity:read_all,profile:read_all"},
         )
 
         cosmosdb_container.return_value.query_items.return_value = []
@@ -50,40 +63,6 @@ class TestStrava:
         response = await func_call(req)
         assert response.status_code == 400
         assert response.get_body() == b'{"result": "User not found"}'
-
-    @patch("shared_code.utils.get_user")
-    @patch("shared_code.cosmosdb_module.cosmosdb_container")
-    async def test_no_id_or_secret(self, cosmosdb_container, get_user_mock):
-        """Test no data in cosmosdb"""
-        req = create_params_func_request(
-            url="http://localhost:7071/api/user",
-            method="GET",
-            params={
-                "code": "code",
-            },
-        )
-
-        cosmosdb_container.return_value.query_items.return_value = [
-            {
-                "id": "id",
-                "strava_authentication": {
-                    "access_token": "123",
-                    "refresh_token": "123",
-                    "expires_at": 1699220922,
-                    "client_id": "",
-                    "client_secret": "",
-                },
-            }
-        ]
-        get_user_mock.return_value = mock_get_user_data
-
-        func_call = callback_strava.build().get_user_function()
-        response = await func_call(req)
-        assert response.status_code == 400
-        assert (
-            response.get_body()
-            == b'{"result": "Please fill in client_id and client_secret in user settings"}'
-        )
 
     @patch("shared_code.strava_helpers.initial_strava_auth")
     @patch("shared_code.utils.get_user")
@@ -95,9 +74,7 @@ class TestStrava:
         req = create_params_func_request(
             url="http://localhost:7071/api/user",
             method="GET",
-            params={
-                "code": "code",
-            },
+            params={"code": "code", "scope": "read,activity:read_all,profile:read_all"},
         )
 
         initial_strava_auth.return_value = {
@@ -125,11 +102,9 @@ class TestStrava:
         func_call = callback_strava.build().get_user_function()
         response = await func_call(req)
         assert response.status_code == 200
-        assert response.get_body() == b'{"result": "done"}'
+        assert response.get_body() == b'{"result": "Success"}'
         # check if strava_helpers.initial_strava_auth is called with correct parameters
-        initial_strava_auth.assert_called_with(
-            "code", client_id="123", client_secret="123"
-        )
+        initial_strava_auth.assert_called_with("code")
         cosmosdb_container.return_value.upsert_item.assert_called_with(
             {
                 "id": "id",
