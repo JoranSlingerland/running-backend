@@ -9,7 +9,7 @@ from functools import partial
 import azure.functions as func
 from stravalib.exc import ObjectNotFound, RateLimitExceeded
 
-from app.gather_data import get_user_settings
+from app.gather_data import add_activity_to_enrichment_queue, get_user_settings
 from shared_code import cosmosdb_module, strava_helpers
 
 bp = func.Blueprint()
@@ -147,3 +147,22 @@ def handle_rate_limit_exceeded():
     raise Exception(
         f"Rate limit exceeded waited for ${sleep_time_original} before raising exception and requeueing the message"
     )
+
+
+@bp.timer_trigger(
+    schedule="0 0 0 * * *", arg_name="timer", run_on_startup=False, use_monitor=False
+)
+def enqueue_non_enriched_activities(timer: func.TimerRequest) -> None:
+    """Will add any none enriched activities to the enrichment queue"""
+    container = cosmosdb_module.cosmosdb_container("activities")
+    activities = container.query_items(
+        query="SELECT * FROM c WHERE c.full_data = false",
+        enable_cross_partition_query=True,
+    )
+
+    add_activity_to_enrichment_queue_function = (
+        add_activity_to_enrichment_queue.build().get_user_function()
+    )
+    result = add_activity_to_enrichment_queue_function([activities])
+
+    logging.info(result)
