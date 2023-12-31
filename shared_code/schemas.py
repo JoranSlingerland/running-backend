@@ -47,9 +47,25 @@ def user_data() -> dict:
             },
             "pace": {
                 "type": "object",
-                "properties": {"threshold": {"type": "integer"}},
+                "properties": {
+                    "threshold": {"type": "number"},
+                    "zones": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "min": {"type": "number"},
+                                "max": {"type": "number"},
+                            },
+                            "additionalProperties": False,
+                            "required": ["name", "min", "max"],
+                        },
+                        "additionalItems": True,
+                    },
+                },
                 "additionalProperties": False,
-                "required": ["threshold"],
+                "required": ["threshold", "zones"],
             },
         },
         "additionalProperties": False,

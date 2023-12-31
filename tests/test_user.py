@@ -57,8 +57,16 @@ class TestPostUser:
                 "access_token": "123",
                 "refresh_token": "123",
                 "expires_at": 123,
-                "client_id": "123",
-                "client_secret": "123",
+            },
+            "heart_rate": {
+                "max": 206,
+                "resting": 48,
+                "threshold": 192,
+                "zones": [{"name": "Zone 1: Recovery", "min": 0, "max": 164}],
+            },
+            "pace": {
+                "threshold": 3.8461538461538463,
+                "zones": [{"name": "Zone 1: Recovery", "min": 3, "max": 0}],
             },
         }
 
