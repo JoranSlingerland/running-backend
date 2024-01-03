@@ -68,6 +68,7 @@ class TestPostUser:
                 "threshold": 3.8461538461538463,
                 "zones": [{"name": "Zone 1: Recovery", "min": 3, "max": 0}],
             },
+            "gender": "male",
         }
 
         req = func.HttpRequest(
