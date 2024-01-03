@@ -67,6 +67,7 @@ def user_data() -> dict:
                 "additionalProperties": False,
                 "required": ["threshold", "zones"],
             },
+            "gender": {"type": "string", "enum": ["male", "female"]},
         },
         "additionalProperties": False,
         "required": [
@@ -74,5 +75,6 @@ def user_data() -> dict:
             "strava_authentication",
             "heart_rate",
             "pace",
+            "gender",
         ],
     }

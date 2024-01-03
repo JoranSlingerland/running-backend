@@ -10,7 +10,7 @@ import azure.functions as func
 from stravalib.exc import ObjectNotFound, RateLimitExceeded
 
 from app.gather_data import add_activity_to_enrichment_queue, get_user_settings
-from shared_code import cosmosdb_module, strava_helpers
+from shared_code import cosmosdb_module, strava_helpers, trimp_helpers
 
 bp = func.Blueprint()
 
@@ -71,6 +71,9 @@ def enrich_activity(
     streams["userId"] = user_id
     activity = strava_helpers.cleanup_activity(activity, user_id, True)
 
+    # Calculate custom fields
+    activity = calculate_custom_fields(activity, user_settings)
+
     # Add activity and streams data to cosmosdb6
     container = cosmosdb_module.cosmosdb_container("activities")
     cosmosdb_module.container_function_with_back_off(
@@ -86,6 +89,53 @@ def enrich_activity(
             streams,
         )
     )
+
+
+def calculate_custom_fields(activity: dict, user_settings: dict) -> dict:
+    """Calculate custom fields"""
+    # Calculate Reserves
+    if activity["has_heartrate"]:
+        activity["hr_reserve"] = trimp_helpers.calculate_hr_reserve(
+            activity["average_heartrate"],
+            user_settings["heart_rate"]["resting"],
+            user_settings["heart_rate"]["max"],
+        )
+    if activity["type"] == "Run":
+        activity["pace_reserve"] = trimp_helpers.calculate_pace_reserve(
+            activity["average_speed"],
+            user_settings["pace"]["threshold"],
+        )
+
+    # Calculate TRIMP
+    if activity["has_heartrate"]:
+        activity["hr_trimp"] = trimp_helpers.calculate_hr_trimp(
+            activity["moving_time"],
+            activity["hr_reserve"],
+            user_settings["gender"],
+            True,
+        )
+    if activity["type"] == "Run":
+        activity["pace_trimp"] = trimp_helpers.calculate_pace_trimp(
+            activity["moving_time"],
+            activity["pace_reserve"],
+            user_settings["gender"],
+            True,
+        )
+
+    # Calculate VO2Max
+    if activity["has_heartrate"]:
+        activity["hr_max_percentage"] = trimp_helpers.calculate_hr_max_percentage(
+            activity["average_heartrate"],
+            user_settings["heart_rate"]["max"],
+        )
+        activity["vo2max_estimate"] = trimp_helpers.calculate_vo2max_estimate(
+            activity["distance"],
+            activity["moving_time"],
+            activity["hr_max_percentage"],
+            True,
+        )
+
+    return activity
 
 
 @bp.function_name(name="enrich_activity_poison_queue")

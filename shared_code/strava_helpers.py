@@ -86,10 +86,33 @@ def cleanup_activity(activity: dict, user_id: str, full_data: bool) -> object:
             effort["start_date_local"] = effort["start_date_local"].strftime(
                 "%Y-%m-%dT%H:%M:%SZ"
             )
-    # Add custom fields
+
+    # Add default custom fields
     activity["id"] = str(activity["id"])
     activity["userId"] = user_id
     activity["full_data"] = full_data
+
+    # Add potential missing fields
+    default_fields = {
+        "hr_reserve": None,
+        "pace_reserve": None,
+        "hr_trimp": None,
+        "pace_trimp": None,
+        "hr_max_percentage": None,
+        "vo2max_estimate": {
+            "workout_vo2_max": None,
+            "vo2_max_percentage": None,
+            "estimated_vo2_max": None,
+        },
+        "user_input": {
+            "include_in_vo2max_estimate": True,
+            "tags": [],
+            "notes": "",
+        },
+    }
+    for field, default_value in default_fields.items():
+        if field not in activity:
+            activity[field] = default_value
 
     # Remove fields
     fields_to_remove = [
