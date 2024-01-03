@@ -48,18 +48,28 @@ def calculate_hr_max_percentage(avg_workout_hr: float, max_hr: float) -> float:
 
 
 def calculate_vo2max_percentage(hr_max_percentage: float) -> Optional[float]:
-    """Convert HR max percentage to VO2 max percentage."""
-    # This calculation is not accurate to use for training purposes
-    # References:
-    #  - https://journals.lww.com/acsm-msse/Fulltext/2007/02000/Relationship_between__HRmax,__HR_Reserve,.18.aspx
-    #  - https://www.ncsf.org/pdf/ceu/relationship_between_percent_hr_max_and_percent_vo2_max.pdf
-    #  - https://fellrnr.com/wiki/Heart_Rate_Reserve
-    # vo2max_percentage = ((hr_max_percentage * 100) - 37) / 0.64
-    # vo2max_percentage = ((hr_max_percentage * 100) - 30.14) / 0.706
-    vo2max_percentage = ((hr_max_percentage * 100) - 26) / 0.706
-    # vo2max_percentage = ((hr_reserve) * 1.12) - 12
+    """
+    Convert HR max percentage to VO2 max percentage.
 
-    if 0 <= vo2max_percentage <= 100:
+    Parameters
+    ----------
+    hr_max_percentage : float
+        The average heart rate of the activity as a percentage of the maximum heart rate.
+
+    Returns
+    -------
+    Optional[float]
+        The calculated VO2 max percentage.
+
+    References
+    ----------
+        - https://journals.lww.com/acsm-msse/Fulltext/2007/02000/Relationship_between__HRmax,__HR_Reserve,.18.aspx
+        - https://www.ncsf.org/pdf/ceu/relationship_between_percent_hr_max_and_percent_vo2_max.pdf
+        - https://fellrnr.com/wiki/Heart_Rate_Reserve
+    """
+    vo2max_percentage = (hr_max_percentage - 0.26) / 0.706
+
+    if 0 <= vo2max_percentage <= 1:
         return vo2max_percentage
     else:
         return None
@@ -159,6 +169,8 @@ def calculate_vo2max_estimate(
     """
     Calculate VO2 Max.
 
+    Calculations are still in progress and this is only a rough estimate.
+
     Parameters
     ----------
     distance : float
@@ -194,7 +206,6 @@ def calculate_vo2max_estimate(
     )
     workout_vo2_max = unadjusted_vo2max_for_workout / vo2max_percentage_for_workout
 
-    # These calculations are still not accurate to use for training purposes
     vo2_max_percentage = calculate_vo2max_percentage(hr_max_percentage)
     if vo2_max_percentage is None:
         estimated_vo2_max = None
