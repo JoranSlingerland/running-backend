@@ -1,7 +1,5 @@
 """General utility functions"""
 
-import base64
-import json
 
 import azure.functions as func
 from jsonschema import validate

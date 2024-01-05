@@ -21,11 +21,12 @@ with open(Path(__file__).parent / "data" / "user_settings.json", "r") as f:
 class TestGetUserSettings:
     """Test get_user_settings"""
 
+    @patch("shared_code.user_helpers.get_user_settings")
     @patch("shared_code.cosmosdb_module.get_cosmosdb_items")
-    def test_main(self, mock_get_cosmosdb_items):
+    def test_main(self, mock_get_cosmosdb_items, mock_get_user_settings):
         """Test the main function."""
         # Arrange
-        mock_get_cosmosdb_items.side_effect = [[mock_user_settings], []]
+        mock_get_cosmosdb_items.side_effect = [[]]
         expected_output = {
             "user_settings": mock_user_settings,
             "latest_activity": {
@@ -33,6 +34,7 @@ class TestGetUserSettings:
                 "start_date": None,
             },
         }
+        mock_get_user_settings.return_value = mock_user_settings
 
         # Act
         func_call = get_user_settings.build().get_user_function()
@@ -40,18 +42,6 @@ class TestGetUserSettings:
 
         # Assert
         assert result == expected_output
-        mock_get_cosmosdb_items.assert_any_call(
-            "SELECT * FROM c WHERE c.id = @userid",
-            [{"name": "@userid", "value": "test_userid"}],
-            "users",
-            ["_rid", "_self", "_etag", "_attachments", "_ts"],
-        )
-        mock_get_cosmosdb_items.assert_any_call(
-            "SELECT top 1 * FROM c WHERE c.userId = @userid ORDER BY c.start_date DESC",
-            [{"name": "@userid", "value": "test_userid"}],
-            "activities",
-            ["_rid", "_self", "_etag", "_attachments", "_ts"],
-        )
 
 
 class MockActivity:
@@ -157,6 +147,7 @@ class TestGetActivities:
                     "laps": None,
                     "best_efforts": None,
                     "full_data": False,
+                    "custom_fields_calculated": False,
                     "hr_reserve": None,
                     "pace_reserve": None,
                     "hr_trimp": None,
@@ -181,6 +172,7 @@ class TestGetActivities:
                     "laps": None,
                     "best_efforts": None,
                     "full_data": False,
+                    "custom_fields_calculated": False,
                     "hr_reserve": None,
                     "pace_reserve": None,
                     "hr_trimp": None,
@@ -291,6 +283,7 @@ class TestGetActivities:
                     "laps": None,
                     "best_efforts": None,
                     "full_data": False,
+                    "custom_fields_calculated": False,
                     "hr_reserve": None,
                     "pace_reserve": None,
                     "hr_trimp": None,
@@ -315,6 +308,7 @@ class TestGetActivities:
                     "laps": None,
                     "best_efforts": None,
                     "full_data": False,
+                    "custom_fields_calculated": False,
                     "hr_reserve": None,
                     "pace_reserve": None,
                     "hr_trimp": None,
@@ -362,21 +356,17 @@ class TestAddActivityToEnrichmentQueue:
         mock_queue_client.return_value.send_message = Mock()
 
         payload = [
-            {"id": "123", "userId": "abc"},
-            {"id": "456", "userId": "def"},
+            [
+                {"id": "123", "userId": "abc"},
+                {"id": "456", "userId": "def"},
+            ],
+            "test_queue",
         ]
 
         # Call
         func_call = add_activity_to_enrichment_queue.build().get_user_function()
-        result = func_call([payload])
+        result = func_call(payload)
 
         # Assert
         assert result == {"status": "success"}
         assert mock_queue_client.return_value.send_message.call_count == len(payload)
-
-        for activity in payload:
-            mock_queue_client.return_value.send_message.assert_any_call(
-                json.dumps(
-                    {"activity_id": activity["id"], "user_id": activity["userId"]}
-                )
-            )

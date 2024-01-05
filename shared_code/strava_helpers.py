@@ -67,7 +67,9 @@ def create_strava_client(user_settings: object) -> Tuple[Client, dict, bool]:
     )
 
 
-def cleanup_activity(activity: dict, user_id: str, full_data: bool) -> object:
+def cleanup_activity(
+    activity: dict, user_id: str, full_data: bool, custom_fields_calculated: bool
+) -> object:
     """Cleanup activity"""
     # convert datetime to string
     activity["start_date"] = activity["start_date"].strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -91,6 +93,7 @@ def cleanup_activity(activity: dict, user_id: str, full_data: bool) -> object:
     activity["id"] = str(activity["id"])
     activity["userId"] = user_id
     activity["full_data"] = full_data
+    activity["custom_fields_calculated"] = custom_fields_calculated
 
     # Add potential missing fields
     default_fields = {

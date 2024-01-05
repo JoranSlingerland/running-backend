@@ -1,13 +1,10 @@
 """Gather data orchestration and activity functions"""
 
-import json
 import logging
-import os
 
 import azure.durable_functions as df
-from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 
-from shared_code import cosmosdb_module, strava_helpers
+from shared_code import cosmosdb_module, queue_helpers, strava_helpers, user_helpers
 
 bp = df.Blueprint()
 
@@ -47,7 +44,9 @@ def orch_gather_data(context: df.DurableOrchestrationContext):
 
     # step 4: add activity id to enrichment queue
     logging.info("Step 4: Adding activity id to enrichment queue")
-    yield context.call_activity("add_activity_to_enrichment_queue", [activities])
+    yield context.call_activity(
+        "add_activity_to_enrichment_queue", [activities, "enrichment-queue"]
+    )
 
     return output
 
@@ -64,18 +63,13 @@ def get_user_settings(payload: str) -> dict:
     userid = payload[0]
 
     parameters = [{"name": "@userid", "value": userid}]
-    keys_to_pop = ["_rid", "_self", "_etag", "_attachments", "_ts"]
 
-    # TODO Handle case where user does not exist in cosmosdb
-    user_settings = cosmosdb_module.get_cosmosdb_items(
-        "SELECT * FROM c WHERE c.id = @userid", parameters, "users", keys_to_pop
-    )[0]
+    user_settings = user_helpers.get_user_settings(userid)
 
     latest_activity = cosmosdb_module.get_cosmosdb_items(
         "SELECT top 1 * FROM c WHERE c.userId = @userid ORDER BY c.start_date DESC",
         parameters,
         "activities",
-        keys_to_pop,
     )
 
     return {
@@ -110,7 +104,9 @@ def get_activities(payload: str) -> dict:
     activities_list = [activity.dict() for activity in activities]
 
     for activity in activities_list:
-        activity = strava_helpers.cleanup_activity(activity, user_settings["id"], False)
+        activity = strava_helpers.cleanup_activity(
+            activity, user_settings["id"], False, False
+        )
 
     return {
         "activities": activities_list,
@@ -123,18 +119,8 @@ def add_activity_to_enrichment_queue(payload: str) -> dict:
     """Orchestrator function"""
 
     activities = payload[0]
+    queue_name = payload[1]
 
-    account_url = os.environ["AZUREWEBJOBSSTORAGE"]
-    queue_name = "enrichment-queue"
+    status = queue_helpers.add_activity_to_enrichment_queue(activities, queue_name)
 
-    queue_client = QueueClient.from_connection_string(
-        conn_str=account_url,
-        queue_name=queue_name,
-        message_encode_policy=TextBase64EncodePolicy(),
-    )
-    for activity in activities:
-        queue_client.send_message(
-            json.dumps({"activity_id": activity["id"], "user_id": activity["userId"]})
-        )
-
-    return {"status": "success"}
+    return status

@@ -3,14 +3,12 @@
 import datetime
 import logging
 import time
-import uuid
 from functools import partial
 
 import azure.functions as func
 from stravalib.exc import ObjectNotFound, RateLimitExceeded
 
-from app.gather_data import add_activity_to_enrichment_queue, get_user_settings
-from shared_code import cosmosdb_module, strava_helpers, trimp_helpers
+from shared_code import cosmosdb_module, queue_helpers, strava_helpers, user_helpers
 
 bp = func.Blueprint()
 
@@ -29,8 +27,7 @@ def enrich_activity(
     logging.info(f"Enriching activity {activity_id} for user {user_id}")
 
     # Get user settings
-    get_user_settings_function = get_user_settings.build().get_user_function()
-    user_settings = get_user_settings_function([user_id])["user_settings"]
+    user_settings = user_helpers.get_user_settings(user_id)
 
     # Get activity and streams data
     (
@@ -69,10 +66,7 @@ def enrich_activity(
         streams[key] = value.dict()
     streams["id"] = activity_id
     streams["userId"] = user_id
-    activity = strava_helpers.cleanup_activity(activity, user_id, True)
-
-    # Calculate custom fields
-    activity = calculate_custom_fields(activity, user_settings)
+    activity = strava_helpers.cleanup_activity(activity, user_id, True, False)
 
     # Add activity and streams data to cosmosdb6
     container = cosmosdb_module.cosmosdb_container("activities")
@@ -90,52 +84,8 @@ def enrich_activity(
         )
     )
 
-
-def calculate_custom_fields(activity: dict, user_settings: dict) -> dict:
-    """Calculate custom fields"""
-    # Calculate Reserves
-    if activity["has_heartrate"]:
-        activity["hr_reserve"] = trimp_helpers.calculate_hr_reserve(
-            activity["average_heartrate"],
-            user_settings["heart_rate"]["resting"],
-            user_settings["heart_rate"]["max"],
-        )
-    if activity["type"] == "Run":
-        activity["pace_reserve"] = trimp_helpers.calculate_pace_reserve(
-            activity["average_speed"],
-            user_settings["pace"]["threshold"],
-        )
-
-    # Calculate TRIMP
-    if activity["has_heartrate"]:
-        activity["hr_trimp"] = trimp_helpers.calculate_hr_trimp(
-            activity["moving_time"],
-            activity["hr_reserve"],
-            user_settings["gender"],
-            True,
-        )
-    if activity["type"] == "Run":
-        activity["pace_trimp"] = trimp_helpers.calculate_pace_trimp(
-            activity["moving_time"],
-            activity["pace_reserve"],
-            user_settings["gender"],
-            True,
-        )
-
-    # Calculate VO2Max
-    if activity["has_heartrate"]:
-        activity["hr_max_percentage"] = trimp_helpers.calculate_hr_max_percentage(
-            activity["average_heartrate"],
-            user_settings["heart_rate"]["max"],
-        )
-        activity["vo2max_estimate"] = trimp_helpers.calculate_vo2max_estimate(
-            activity["distance"],
-            activity["moving_time"],
-            activity["hr_max_percentage"],
-            True,
-        )
-
-    return activity
+    # Add activity to calculate_fields queue
+    queue_helpers.add_activity_to_enrichment_queue([activity], "calculate-fields-queue")
 
 
 @bp.function_name(name="enrich_activity_poison_queue")
@@ -148,33 +98,7 @@ def enrich_activity_poison_queue(
     queue: func.QueueMessage,
 ) -> None:
     """Enrich activity poison queue function"""
-
-    try:
-        msg = queue.get_json()
-    except Exception:
-        msg = "Error parsing message"
-
-    try:
-        user_id = msg["activity_id"]
-    except KeyError:
-        user_id = "unknown"
-
-    notification = {
-        "id": str(uuid.uuid4()),
-        "type": "enrichment",
-        "status": "failed",
-        "message": msg,
-        "userId": user_id,
-        "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-    }
-
-    container = cosmosdb_module.cosmosdb_container("notifications")
-    cosmosdb_module.container_function_with_back_off(
-        partial(
-            container.upsert_item,
-            notification,
-        )
-    )
+    queue_helpers.handle_poison_message(queue, "enrichment-queue")
 
 
 def handle_rate_limit_exceeded():
@@ -197,22 +121,3 @@ def handle_rate_limit_exceeded():
     raise Exception(
         f"Rate limit exceeded waited for ${sleep_time_original} before raising exception and requeueing the message"
     )
-
-
-@bp.timer_trigger(
-    schedule="0 0 0 * * *", arg_name="timer", run_on_startup=False, use_monitor=False
-)
-def enqueue_non_enriched_activities(timer: func.TimerRequest) -> None:
-    """Will add any none enriched activities to the enrichment queue"""
-    container = cosmosdb_module.cosmosdb_container("activities")
-    activities = container.query_items(
-        query="SELECT * FROM c WHERE c.full_data = false",
-        enable_cross_partition_query=True,
-    )
-
-    add_activity_to_enrichment_queue_function = (
-        add_activity_to_enrichment_queue.build().get_user_function()
-    )
-    result = add_activity_to_enrichment_queue_function([activities])
-
-    logging.info(result)

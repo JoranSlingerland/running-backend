@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import azure.durable_functions as df
 import azure.functions as func
 
-from shared_code import aio_helper, user_helpers, utils
+from shared_code import aio_helper, user_helpers
 
 bp = df.Blueprint()
 

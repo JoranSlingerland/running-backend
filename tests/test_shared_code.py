@@ -12,11 +12,13 @@ import azure.functions as func
 import pytest
 import time_machine
 from azure.cosmos import exceptions
+from azure.functions import QueueMessage
 
 from shared_code import (
     aio_helper,
     cosmosdb_module,
     get_config,
+    queue_helpers,
     strava_helpers,
     user_helpers,
     utils,
@@ -370,7 +372,7 @@ class TestStravaHelpers:
 
         # Call cleanup_activity with the mock activity
         cleaned_activity = strava_helpers.cleanup_activity(
-            mock_activity, "mock_user_id", True
+            mock_activity, "mock_user_id", True, True
         )
 
         # Check that the returned activity has the expected format
@@ -401,3 +403,45 @@ class TestStravaHelpers:
         assert "partner_brand_tag" not in cleaned_activity
         assert "from_accepted_tag" not in cleaned_activity
         assert "segment_leaderboard_opt_out" not in cleaned_activity
+
+
+class TestQueueHelpers:
+    """Test queue helpers"""
+
+    @mock.patch.object(cosmosdb_module, "cosmosdb_container")
+    @mock.patch.object(cosmosdb_module, "container_function_with_back_off")
+    def test_handle_poison_message(self, mock_back_off, mock_container):
+        """Test handle poison message"""
+        # Mock the QueueMessage and its get_json method
+        mock_queue = mock.MagicMock(spec=QueueMessage)
+        mock_queue.get_json.return_value = {"activity_id": "test_id"}
+
+        queue_helpers.handle_poison_message(mock_queue, "test_queue")
+
+        # Assert that cosmosdb_container was called with the correct argument
+        mock_container.assert_called_once_with("notifications")
+
+        # Assert that get_json was called once
+        mock_queue.get_json.assert_called_once()
+
+        # Assert that container_function_with_back_off was called once
+        mock_back_off.assert_called_once()
+
+    @mock.patch.object(cosmosdb_module, "cosmosdb_container")
+    @mock.patch.object(cosmosdb_module, "container_function_with_back_off")
+    def test_invalid_json(self, mock_back_off, mock_container):
+        """Test invalid json"""
+        # Mock the QueueMessage and its get_json method
+        mock_queue = mock.MagicMock(spec=QueueMessage)
+        mock_queue.get_json.side_effect = Exception("test exception")
+
+        queue_helpers.handle_poison_message(mock_queue, "test_queue")
+
+        # Assert that cosmosdb_container was called with the correct argument
+        mock_container.assert_called_once_with("notifications")
+
+        # Assert that get_json was called once
+        mock_queue.get_json.assert_called_once()
+
+        # Assert that container_function_with_back_off was called once
+        mock_back_off.assert_called_once()
