@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import azure.durable_functions as df
 import azure.functions as func
 
-from shared_code import aio_helper, utils
+from shared_code import aio_helper, user_helpers, utils
 
 bp = df.Blueprint()
 
@@ -27,7 +27,7 @@ async def orchestrator_start(
             status_code=400,
         )
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
 
     instance_id = await client.start_new(function_name, None, [userid])
 
@@ -49,7 +49,7 @@ async def orchestrator_terminate(
             json.dumps({"error": "Missing instanceId"}), status_code=400
         )
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
     logging.info(f"Terminating orchestration with ID {instance_id}")
 
     status = await client.get_status(instance_id)
@@ -104,7 +104,7 @@ async def orchestrator_purge(
             json.dumps({"error": "Missing instanceId"}), status_code=400
         )
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
 
     logging.info(f"Purging orchestration with ID {instance_id}")
 
@@ -161,7 +161,7 @@ async def orchestrator_list(
     if not days:
         return func.HttpResponse(json.dumps({"error": "Missing days"}), status_code=400)
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
 
     tasks = []
     for i in range(int(days)):

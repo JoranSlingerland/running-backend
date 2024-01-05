@@ -5,7 +5,7 @@ import logging
 
 import azure.functions as func
 
-from shared_code import cosmosdb_module, utils
+from shared_code import cosmosdb_module, user_helpers
 
 bp = func.Blueprint()
 
@@ -24,7 +24,7 @@ def list_activities(req: func.HttpRequest) -> func.HttpResponse:
     if end_date:
         query += " AND c.start_date <= @endDate"
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
 
     container = cosmosdb_module.cosmosdb_container("activities")
     result = list(

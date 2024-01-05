@@ -2,7 +2,7 @@
 
 import azure.functions as func
 
-from shared_code import cosmosdb_module, strava_helpers, utils
+from shared_code import cosmosdb_module, strava_helpers, user_helpers
 
 bp = func.Blueprint()
 
@@ -13,11 +13,10 @@ async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
     # Get request data
     code = req.params.get("code")
     scope = req.params.get("scope")
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
 
     # Set parameters
     parameters = [{"name": "@userid", "value": userid}]
-    keys_to_pop = ["_rid", "_self", "_etag", "_attachments", "_ts"]
 
     # Validate request
     if not code or not scope:
@@ -36,7 +35,7 @@ async def callback_strava(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     user_settings = cosmosdb_module.get_cosmosdb_items(
-        "SELECT * FROM c WHERE c.id = @userid", parameters, "users", keys_to_pop
+        "SELECT * FROM c WHERE c.id = @userid", parameters, "users"
     )
 
     if not user_settings:

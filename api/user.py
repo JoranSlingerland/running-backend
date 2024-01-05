@@ -4,7 +4,7 @@ import logging
 
 import azure.functions as func
 
-from shared_code import cosmosdb_module, schemas, utils
+from shared_code import cosmosdb_module, schemas, user_helpers, utils
 
 bp = func.Blueprint()
 
@@ -14,7 +14,7 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
     """Main function"""
     logging.info("Getting container data")
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
 
     container = cosmosdb_module.cosmosdb_container("users")
     result = list(
@@ -66,7 +66,7 @@ async def post_user(req: func.HttpRequest) -> func.HttpResponse:
     if utils.validate_json(data, schemas.user_data()):
         return utils.validate_json(data, schemas.user_data())
 
-    userid = utils.get_user(req)["userId"]
+    userid = user_helpers.get_user(req)["userId"]
     data["id"] = userid
 
     container = cosmosdb_module.cosmosdb_container("users")

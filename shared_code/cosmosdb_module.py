@@ -101,7 +101,10 @@ def container_function_with_back_off(
 
 
 def get_cosmosdb_items(
-    query: str, parameters: list, container_name: str, keys_to_pop: list
+    query: str,
+    parameters: list,
+    container_name: str,
+    keys_to_pop: list = ["_rid", "_self", "_etag", "_attachments", "_ts"],
 ):
     """Get CosmosDB items"""
     container_client = cosmosdb_container(container_name)

@@ -13,7 +13,14 @@ import pytest
 import time_machine
 from azure.cosmos import exceptions
 
-from shared_code import aio_helper, cosmosdb_module, get_config, strava_helpers, utils
+from shared_code import (
+    aio_helper,
+    cosmosdb_module,
+    get_config,
+    strava_helpers,
+    user_helpers,
+    utils,
+)
 
 with open(Path(__file__).parent / "data" / "get_user_data.json", "r") as f:
     mock_get_user_data = json.load(f)
@@ -201,6 +208,10 @@ class TestUtils:
         weighted_average = utils.get_weighted_average(data, weight)
         assert weighted_average == 3.0
 
+
+class TestUserHelpers:
+    """Test user_helpers.py"""
+
     def test_get_user(self):
         """Test get user"""
         x_ms_client_principal = base64.b64encode(
@@ -216,7 +227,7 @@ class TestUtils:
             },
         )
 
-        user = utils.get_user(req)
+        user = user_helpers.get_user(req)
 
         assert user == mock_get_user_data
 

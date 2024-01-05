@@ -25,7 +25,7 @@ mock_container_response = [
 class TestListActivities:
     """Test list_activities"""
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     def test_valid_request(self, cosmosdb_container, mock_get_user):
         """Test valid request"""
@@ -46,7 +46,7 @@ class TestListActivities:
         assert result.status_code == 200
         assert body == [mock_container_response[0]]
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     def test_no_data_in_cosmosdb(self, cosmosdb_container, mock_get_user):
         """Test no data in cosmosdb"""
@@ -64,7 +64,7 @@ class TestListActivities:
         assert result.status_code == 200
         assert result.get_body() == b"{[]}"
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     def test_with_start_and_end_date(self, cosmosdb_container, mock_get_user):
         """Test with start and end date"""

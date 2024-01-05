@@ -16,7 +16,7 @@ with open(Path(__file__).parent / "data" / "get_user_data.json", "r") as f:
 class TestStrava:
     """Test strava"""
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     async def test_no_code_param(self, get_user_mock):
         """Test no code param"""
         req = create_params_func_request(
@@ -31,7 +31,7 @@ class TestStrava:
         assert response.status_code == 400
         assert response.get_body() == b'{"result": "Missing code or scope"}'
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     async def test_invalid_scope_param(self, get_user_mock):
         """Test no code param"""
         req = create_params_func_request(
@@ -46,7 +46,7 @@ class TestStrava:
         assert response.status_code == 400
         assert response.get_body() == b'{"result": "Invalid scope"}'
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     async def test_no_data_in_cosmosdb(self, cosmosdb_container, get_user_mock):
         """Test no data in cosmosdb"""
@@ -65,7 +65,7 @@ class TestStrava:
         assert response.get_body() == b'{"result": "User not found"}'
 
     @patch("shared_code.strava_helpers.initial_strava_auth")
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     async def test_valid_request(
         self, cosmosdb_container, get_user_mock, initial_strava_auth

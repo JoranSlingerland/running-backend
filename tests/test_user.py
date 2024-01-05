@@ -47,7 +47,7 @@ class TestPostUser:
         assert response.status_code == 400
         assert response.get_body() == b'{"result": "Schema validation failed"}'
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     async def test_main(self, cosmosdb_container_mock, get_user_mock):
         """Test add_item_to_input"""
@@ -106,7 +106,7 @@ class TestGetUser:
         }
     ]
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     def test_valid_request(self, cosmosdb_container, mock_get_user):
         """Test valid request"""
@@ -127,7 +127,7 @@ class TestGetUser:
         assert result.status_code == 200
         assert body == self.mock_container_response[0]
 
-    @patch("shared_code.utils.get_user")
+    @patch("shared_code.user_helpers.get_user")
     @patch("shared_code.cosmosdb_module.cosmosdb_container")
     def test_no_data_in_cosmosdb(self, cosmosdb_container, mock_get_user):
         """Test no data in cosmosdb"""
