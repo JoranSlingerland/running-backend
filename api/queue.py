@@ -14,10 +14,11 @@ bp = func.Blueprint()
 @bp.route(route="queue/activities", methods=["POST"])
 def queue_activities(req: func.HttpRequest) -> func.HttpResponse:
     """Main function"""
-    logging.info("Getting container data")
+    logging.info("Queueing activities")
 
     queue_name = req.params.get("queueName")
     activity_id = req.params.get("activityId")
+    overwrite = req.params.get("overwrite")
 
     allowed_queues = [
         "enrichment-queue",
@@ -38,6 +39,15 @@ def queue_activities(req: func.HttpRequest) -> func.HttpResponse:
     query = "SELECT * FROM c WHERE c.userId = @userid"
     if activity_id:
         query += " AND c.id = @activityId"
+    if not overwrite:
+        match queue_name:
+            case "enrichment-queue":
+                query += " AND c.full_data = false"
+            case "calculate-fields-queue":
+                query += (
+                    " AND c.full_data = true AND c.custom_fields_calculated = false"
+                )
+
     parameters = [
         {"name": "@userid", "value": userid},
         {"name": "@activityId", "value": activity_id},

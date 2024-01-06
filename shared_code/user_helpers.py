@@ -24,8 +24,6 @@ def get_user(
 
 def get_user_settings(userid: str) -> dict:
     """Get user data and strava client"""
-    logging.info("Getting user data")
-
     # suppress logger output
     logger = logging.getLogger("azure")
     logger.setLevel(logging.CRITICAL)
