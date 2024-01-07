@@ -48,7 +48,7 @@ def orch_gather_data(context: df.DurableOrchestrationContext):
         "add_activity_to_enrichment_queue", [activities, "enrichment-queue"]
     )
 
-    return output
+    return {"status": "success", "ActivitiesAdded": len(activities)}
 
 
 @bp.activity_trigger(input_name="payload")

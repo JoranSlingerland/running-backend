@@ -199,7 +199,6 @@ async def get_orchestrations(
             instance["lastUpdatedTime"] = instance["lastUpdatedTime"].replace(
                 ".000000Z", ""
             )
-            instance.pop("output", None)
             instance.pop("customStatus", None)
             instance.pop("history", None)
             instance.pop("name", None)

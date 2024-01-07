@@ -68,6 +68,14 @@ def user_data() -> dict:
                 "required": ["threshold", "zones"],
             },
             "gender": {"type": "string", "enum": ["male", "female"]},
+            "preferences": {
+                "type": "object",
+                "properties": {
+                    "preferred_tss_type": {"type": "string", "enum": ["hr", "pace"]},
+                },
+                "additionalProperties": False,
+                "required": ["preferred_tss_type"],
+            },
         },
         "additionalProperties": False,
         "required": [
@@ -76,5 +84,6 @@ def user_data() -> dict:
             "heart_rate",
             "pace",
             "gender",
+            "preferences",
         ],
     }
