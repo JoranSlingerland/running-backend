@@ -1,5 +1,6 @@
 """Http start function"""
 
+import contextlib
 import json
 import logging
 from datetime import datetime, timedelta
@@ -204,4 +205,7 @@ async def get_orchestrations(
             instance.pop("name", None)
             instance.pop("input", None)
             output.append(instance)
+            with contextlib.suppress(Exception):
+                instance["output"] = json.loads(instance["output"])
+
     return output

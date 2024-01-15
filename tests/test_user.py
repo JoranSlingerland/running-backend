@@ -68,6 +68,7 @@ class TestPostUser:
                 "threshold": 3.8461538461538463,
                 "zones": [{"name": "Zone 1: Recovery", "min": 3, "max": 0}],
             },
+            "preferences": {"preferred_tss_type": "hr"},
             "gender": "male",
         }
 
