@@ -52,7 +52,6 @@ class TestPostUser:
     async def test_main(self, cosmosdb_container_mock, get_user_mock):
         """Test add_item_to_input"""
         body = {
-            "dark_mode": "system",
             "strava_authentication": {
                 "access_token": "123",
                 "refresh_token": "123",
@@ -68,7 +67,11 @@ class TestPostUser:
                 "threshold": 3.8461538461538463,
                 "zones": [{"name": "Zone 1: Recovery", "min": 3, "max": 0}],
             },
-            "preferences": {"preferred_tss_type": "hr"},
+            "preferences": {
+                "preferred_tss_type": "hr",
+                "dark_mode": "system",
+                "units": "metric",
+            },
             "gender": "male",
         }
 
