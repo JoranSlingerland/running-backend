@@ -6,7 +6,6 @@ def user_data() -> dict:
     return {
         "type": "object",
         "properties": {
-            "dark_mode": {"type": "string", "enum": ["dark", "light", "system"]},
             "strava_authentication": {
                 "type": "object",
                 "properties": {
@@ -72,14 +71,18 @@ def user_data() -> dict:
                 "type": "object",
                 "properties": {
                     "preferred_tss_type": {"type": "string", "enum": ["hr", "pace"]},
+                    "units": {"type": "string", "enum": ["metric", "imperial"]},
+                    "dark_mode": {
+                        "type": "string",
+                        "enum": ["dark", "light", "system"],
+                    },
                 },
                 "additionalProperties": False,
-                "required": ["preferred_tss_type"],
+                "required": ["preferred_tss_type", "units", "dark_mode"],
             },
         },
         "additionalProperties": False,
         "required": [
-            "dark_mode",
             "strava_authentication",
             "heart_rate",
             "pace",
